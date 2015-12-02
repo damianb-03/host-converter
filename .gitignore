@@ -1,0 +1,9 @@
+*~
+*.new
+*.user
+*.cbp
+*.cmake
+Makefile
+CMakeCache.txt
+CMakeFiles
+hosts-convert
