@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include "c_record.hpp"
 
@@ -34,35 +35,43 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    while(!fs.eof()) {
+
+    for(int nr = 1; !fs.eof(); ++nr) {
         string line;
         getline(fs,line);
+        replace(line.begin(),line.end(),' ','\t'); // replace all spaces to tabs
+        std::cout << line << std::endl; // dbg
         stringstream ss;
         ss << line;
-        int i = 0;
-        string cols[2];
+
+        const int cols_num = 2;
+        string cols[cols_num];
         if(ss.peek() == '#') {
             continue;
         }
+        int i = 0;
         while(ss.peek() != EOF) {
-            while(ss.peek() == ' ' || ss.peek() == '\n') {
-                ss.get();
-            }
+            //while(ss.peek() == ' ' || ss.peek() == '\n') {
+            //    ss.get();
+           // }
             getline(ss,cols[i],'\t');
             if(!cols[i].size()) {
                 continue;
             }
-            if(i > 3) {
-                cout << "Bad hosts file format! Check if you using tabs instead of spaces" << endl;
-            }
-            // cout << i << ": " << cols[i] << endl;  //dbg
+            cout << "Col" << i << " " << cols[i] << endl;  //dbg
             i++;
+            if(i >= cols_num) {
+                cout << "Bad hosts file format!:\n" << line << endl;
+                break;
+            }
         }
-        c_record rec(cols[0],cols[1]);
-        if(rec.is_correct()) {
+        if(!cols[0].size() || !cols[1].size()) {
+            continue;
+        }
+        c_record rec(nr,cols[0],cols[1]);
+        if(rec.is_ok) {
             fs_out << rec.record_to_string_AAAA() << endl;
             fs_out << rec.record_to_string_PTR() << endl;
-            fs_out << endl;
         }
     }
     fs.close();
